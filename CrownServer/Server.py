@@ -1,7 +1,12 @@
 import sys;
 import socket;
+import struct;
+import array;
+import time;
 
 PORT = 0xD457;
+
+CROW_CHANNELS = int(10); ## Change me to what reality is
 
 ## Crow Device Setup here ##
 
@@ -29,30 +34,27 @@ print("Server listening, waiting for a connection....");
 
 client, address = server.accept();
 
-print("client:{}".format(client));
+print("Client Connected!{}".format(client));
 
-print("Waiting for handshake msg!");
-client.sendall(b'Nickname?\n>');
-clientNickname = client.recv(1024);
-print("Connection from user {}".format(clientNickname))
-client.sendall("welcome, {}\n>".format(clientNickname).encode('ascii'))
+tmp = CROW_CHANNELS.to_bytes(4, "little");
 
-## Server ##
-while True:
-    data = client.recv(1024);
-    if(not data):
-        break;
-    
-    datastr = data.decode("ascii").replace("\n", "");
-    
-    print(datastr);
+client.sendall(tmp);
 
-    if(datastr == "quit"):
-        break;
+# First element in the array is time sence the program started in sec 
+sample_array = array.array('d', [0, 1.123, 2.123, 3.123, 4.123, 5.123, 6.123, 7.123, 8.123, 9.123, 10.123]);
 
-    print("got " + datastr);
+## Server... i dont handle closing or anything.... try catch this and then close after? ##
+try:
 
-    client.sendall(b">");
+    while True:
+        client.sendall(sample_array.tobytes());    
+        sample_array[0] += .001; # hacky, use some time method to get the time sence program start
+        time.sleep(.001); # likely not needed for real thing.
+
+except:
+    print(""); 
+finally:
+    client.close();
 
 
-client.close();
+# todo: shutdown the stuff needed to talk to the crow device 
