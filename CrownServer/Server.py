@@ -40,8 +40,25 @@ tmp = CROW_CHANNELS.to_bytes(4, "little");
 
 client.sendall(tmp);
 
+
+#data is now 
+# [
+#   packet time
+#   sample1[Sensor a, sensor b, sensor c], 
+#   sample2[Sensor a, sensor b, sensor c], 
+#   sample3[Sensor a, sensor b, sensor c], 
+# ]
+
 # First element in the array is time sence the program started in sec 
 sample_array = array.array('d', [0, 1.123, 2.123, 3.123, 4.123, 5.123, 6.123, 7.123, 8.123, 9.123, 10.123]);
+
+nested_list = [[1,2,3], [1,2,3]];
+
+turky = [item for sublist in nested_list for item in sublist]
+
+# new_sample_array = array.array('d',  [0,   ] );
+
+print(turky)
 
 ## Server... i dont handle closing or anything.... try catch this and then close after? ##
 try:
