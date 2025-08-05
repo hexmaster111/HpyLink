@@ -4,11 +4,24 @@ import struct;
 import array;
 import time;
 
+import brainflow
+
+from brainflow import BoardIds
+from brainflow.board_shim import BoardShim, BrainFlowInputParams
+from brainflow.data_filter import DataFilter, FilterTypes, AggOperations
+
 PORT = 0xD457;
 
 CROW_CHANNELS = int(10); ## Change me to what reality is
 
 ## Crow Device Setup here ##
+board_id = BoardIds.CROWN_BOARD.value # or BoardIds.NOTION_2_BOARD.value or BoardIds.NOTION_1_BOARD.value
+params = BrainFlowInputParams ()
+params.board_id = board_id
+BoardShim.enable_dev_board_logger ()
+board = BoardShim (board_id, params)
+board.prepare_session ()
+board.start_stream ()
 
 # Server setup
 print("Server starting on port {}".format(PORT));
@@ -41,29 +54,25 @@ tmp = CROW_CHANNELS.to_bytes(4, "little");
 client.sendall(tmp);
 
 
-#data is now 
-# [
-#   packet time
-#   sample1[Sensor a, sensor b, sensor c], 
-#   sample2[Sensor a, sensor b, sensor c], 
-#   sample3[Sensor a, sensor b, sensor c], 
-# ]
-
-# First element in the array is time sence the program started in sec 
-sample_array = array.array('d', [0, 1.123, 2.123, 3.123, 4.123, 5.123, 6.123, 7.123, 8.123, 9.123, 10.123]);
-
-nested_list = [[1,2,3], [1,2,3]];
-
-turky = [item for sublist in nested_list for item in sublist]
-
-# new_sample_array = array.array('d',  [0,   ] );
-
-print(turky)
 
 ## Server... i dont handle closing or anything.... try catch this and then close after? ##
 try:
-
     while True:
+        data = board.get_board_data()
+        #data is now 
+        # [
+        #   sample1[Sensor a, sensor b, sensor c], 
+        #   sample2[Sensor a, sensor b, sensor c], 
+        #   sample3[Sensor a, sensor b, sensor c], 
+        # ]
+
+        # Flatten the data and prepend the current time
+        current_time = time.time()
+        flat_data = data.flatten()
+        sample_array = array.array('d', [current_time] + flat_data.tolist())
+
+
+
         client.sendall(sample_array.tobytes());    
         sample_array[0] += .001; # hacky, use some time method to get the time sence program start
         time.sleep(.001); # likely not needed for real thing.
@@ -73,5 +82,5 @@ except:
 finally:
     client.close();
 
-
-# todo: shutdown the stuff needed to talk to the crow device 
+board.stop_stream();
+board.release_session();
