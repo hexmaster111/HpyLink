@@ -28,6 +28,7 @@ while True:
         time.sleep(0.005);
     
     data = board.get_board_data();
+    pprint(data);
     DataFilter.write_file(data, 'data.csv', 'w');
     if(keyboard.is_pressed('q')):
         print("Quitting");
